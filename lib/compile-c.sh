@@ -60,7 +60,7 @@ for ((n = 0; n < ${#localIncludes[*]}; n += 2)); do
     done
     IFS="$savedIFS"
     
-    ln -s $source $prefix$target
+    ln -sf $source $prefix$target
 done
 
 # Create a symlink to the main file.

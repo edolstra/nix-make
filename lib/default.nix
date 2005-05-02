@@ -1,20 +1,31 @@
 rec {
 
-  inherit (import /home/eelco/nixpkgs/pkgs/system/i686-linux.nix) stdenv;
+  # Should point at your Nixpkgs installation.
+  pkgPath = ./pkgs;
 
-  compileC = {main, localIncludes ? [], cFlags ? ""}: stdenv.mkDerivation {
+  pkgs = import (pkgPath + /system/all-packages.nix) {};
+
+  stdenv = pkgs.stdenv;
+  
+
+  compileC = {main, localIncludes ? [], cFlags ? "", forSharedLib ? false}:
+  stdenv.mkDerivation {
     name = "compile-c";
     builder = ./compile-c.sh;
     localIncludes =
       if localIncludes == "auto" then
         import (findIncludes {
           main = toString main;
-          hack = curTime;
+          hack = __currentTime;
           inherit cFlags;
         })
       else
         localIncludes;
-    inherit main cFlags;
+    inherit main;
+    cFlags = [
+      cFlags
+      (if forSharedLib then ["-fpic"] else [])
+    ];
   };
 
   /*
@@ -37,10 +48,12 @@ rec {
     inherit objects programName libraries;
   };
 
-  makeLibrary = {objects, libraryName ? []}: stdenv.mkDerivation {
+  makeLibrary = {objects, libraryName ? [], sharedLib ? false}:
+  # assert sharedLib -> fold (obj: x: assert obj.sharedLib && x) false objects
+  stdenv.mkDerivation {
     name = "library";
     builder = ./make-library.sh;
-    inherit objects libraryName;
+    inherit objects libraryName sharedLib;
   };
 
 }

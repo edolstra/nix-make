@@ -2,7 +2,7 @@ let {
 
   inherit (import ../../../lib) compileC link;
 
-  inherit (import ../aterm) libATerm;
+  inherit (import ../aterm {}) libATerm;
 
   compile = fn: compileC {
     main = fn;
@@ -12,5 +12,7 @@ let {
 
   fib = link {objects = compile ./fib.c; libraries = libATerm;};
 
-  body = [fib];
+  primes = link {objects = compile ./primes.c; libraries = libATerm;};
+  
+  body = [fib primes];
 }

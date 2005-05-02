@@ -1,3 +1,5 @@
+{sharedLib ? true}:
+
 rec {
 
   inherit (import ../../../lib) compileC makeLibrary;
@@ -20,11 +22,13 @@ rec {
   compile = fn: compileC {
     main = fn;
     localIncludes = "auto";
+    forSharedLib = sharedLib;
   };
 
   libATerm = makeLibrary {
     libraryName = "ATerm";
-    objects = map {function = compile; list = sources;};
+    objects = map compile sources;
+    inherit sharedLib;
   };
 
 }
