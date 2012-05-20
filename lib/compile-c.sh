@@ -1,4 +1,4 @@
-. $stdenv/setup
+source $stdenv/setup
 
 mainName=$(basename $main | cut -c34-)
 
@@ -68,6 +68,9 @@ if ! test "$(readlink $prefix$mainName)" = $main; then
     ln -s $main $prefix$mainName
 fi
 
+outName=$mainName
+outName=$(basename outName .c)
+
 mkdir $out
 test "$prefix" && cd $prefix
-gcc -Wall $cFlags -c $mainName -o $out/$mainName.o
+gcc -Wall $cFlags -c $mainName -o $out/$outName.o

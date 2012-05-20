@@ -1,9 +1,6 @@
 rec {
 
-  # Should point at your Nixpkgs installation.
-  pkgPath = ./pkgs;
-
-  pkgs = import (pkgPath + /system/all-packages.nix) {};
+  pkgs = import <nixpkgs> {};
 
   stdenv = pkgs.stdenv;
   
@@ -18,7 +15,8 @@ rec {
   stdenv.mkDerivation {
     name = "compile-c";
     builder = ./compile-c.sh;
-    
+
+    /*    
     localIncludes =
       if localIncludes == "auto" then
         dependencyClosure {
@@ -31,20 +29,21 @@ rec {
         }
       else
         localIncludes;
+    */
         
     inherit main;
     
     cFlags = [
       cFlags
       (if sharedLib then ["-fpic"] else [])
-      (map (p: "-I" + (relativise (dirOf main) p)) localIncludePath)
+      #(map (p: "-I" + (relativise (dirOf main) p)) localIncludePath)
     ];
   };
 
   
   findIncludes = {main}: stdenv.mkDerivation {
     name = "find-includes";
-    realBuilder = pkgs.perl ~ "bin/perl";
+    realBuilder = "${pkgs.perl}/bin/perl";
     args = [ ./find-includes.pl ];
     inherit main;
   };
