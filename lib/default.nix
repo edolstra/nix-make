@@ -3,6 +3,14 @@ rec {
   pkgs = import <nixpkgs> {};
 
   stdenv = pkgs.stdenv;
+
+
+  findFile = fn: searchPath:
+    if searchPath == [] then []
+    else
+      let fn' = "${builtins.head searchPath}/${fn}"; in
+      if builtins.pathExists fn' then [ { key = fn'; relative = fn; } ]
+      else findFile fn (builtins.tail searchPath);
   
 
   compileC =
@@ -11,29 +19,30 @@ rec {
   , localIncludePath ? []
   , cFlags ? ""
   , sharedLib ? false
+  , buildInputs ? []
   }:
   stdenv.mkDerivation {
     name = "compile-c";
     builder = ./compile-c.sh;
 
-    /*    
     localIncludes =
       if localIncludes == "auto" then
-        dependencyClosure {
-          scanner = main:
-            import (findIncludes {
-              inherit main;
-            });
-          searchPath = localIncludePath;
-          startSet = [main];
-        }
+        map (x: [ x.key x.relative ]) (builtins.genericClosure {
+          startSet = [ { key = main; relative = baseNameOf (toString main); } ];
+          operator =
+            { key, ... }:
+            let
+              includes = import (findIncludes { main = key; });
+              includesFound = pkgs.lib.concatMap (fn: findFile fn localIncludePath) includes;
+            in includesFound;
+        })
       else
         localIncludes;
-    */
         
-    inherit main;
+    inherit main buildInputs;
     
     cFlags = [
+      "-O3" "-g" "-Wall"
       cFlags
       (if sharedLib then ["-fpic"] else [])
       #(map (p: "-I" + (relativise (dirOf main) p)) localIncludePath)
@@ -49,11 +58,13 @@ rec {
   };
 
     
-  link = {objects, programName ? "program", libraries ? []}: stdenv.mkDerivation {
-    name = "link";
-    builder = ./link.sh;
-    inherit objects programName libraries;
-  };
+  link =
+    { objects, programName ? "program", libraries ? [], buildInputs ? [], flags ? [] }:
+    stdenv.mkDerivation {
+      name = "link";
+      builder = ./link.sh;
+      inherit objects programName libraries buildInputs flags;
+    };
 
   
   makeLibrary = {objects, libraryName ? [], sharedLib ? false}:

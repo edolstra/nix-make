@@ -18,4 +18,4 @@ done
 echo "linking object files into \`$programName'..."
 
 mkdir $out
-gcc -o $out/$programName $objs $libs
+gcc -o $out/$programName $objs $libs $flags

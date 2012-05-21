@@ -8,10 +8,10 @@ print OUT "[\n";
 
 open IN, "<$root" or die "$!";
 while (<IN>) {
-    if (/^\#include\s+\"(.*)\"/) {
+    if (/^\#include\s+\"([^\"]*)\"/) {
         print OUT "\"$1\"\n";
     }
-    if (/^\#include\s+\<(.*)\>/) {
+    if (/^\#include\s+\<([^\>]*)\>/) {
         print OUT "\"$1\"\n";
     }
 }

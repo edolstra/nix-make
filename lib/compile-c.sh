@@ -7,6 +7,10 @@ echo "compiling \`$mainName'..."
 # Turn $localIncludes into an array.
 localIncludes=($localIncludes)
 
+#for ((n = 0; n < ${#localIncludes[*]}; n += 2)); do
+#    echo "${localIncludes[$((n + 0))]} <- ${localIncludes[$((n + 1))]}"
+#done
+
 # Determine how many `..' levels appear in the header file references.
 # E.g., if there is some reference `../../foo.h', then we have to
 # insert two extra levels in the directory structure, so that `a.c' is
@@ -69,8 +73,9 @@ if ! test "$(readlink $prefix$mainName)" = $main; then
 fi
 
 outName=$mainName
-outName=$(basename outName .c)
+outName=$(basename $outName .c)
+outName=$(basename $outName .cc)
 
 mkdir $out
 test "$prefix" && cd $prefix
-gcc -Wall $cFlags -c $mainName -o $out/$outName.o
+gcc -Wall $cFlags -c $mainName -o $out/$outName.o -I. -fPIC
