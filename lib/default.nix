@@ -51,7 +51,7 @@ rec {
 
   
   findIncludes = {main}: stdenv.mkDerivation {
-    name = "find-includes";
+    name = "${baseNameOf (toString main)}-includes";
     realBuilder = "${pkgs.perl}/bin/perl";
     args = [ ./find-includes.pl ];
     inherit main;
@@ -61,19 +61,20 @@ rec {
   link =
     { objects, programName ? "program", libraries ? [], buildInputs ? [], flags ? [] }:
     stdenv.mkDerivation {
-      name = "link";
+      name = "${programName}";
       builder = ./link.sh;
       inherit objects programName libraries buildInputs flags;
     };
 
   
-  makeLibrary = {objects, libraryName ? [], sharedLib ? false}:
-  # assert sharedLib -> fold (obj: x: assert obj.sharedLib && x) false objects
-  stdenv.mkDerivation {
-    name = "library";
-    builder = ./make-library.sh;
-    inherit objects libraryName sharedLib;
-  };
+  makeLibrary =
+    { objects, libraryName ? [], sharedLib ? true }:
+    # assert sharedLib -> fold (obj: x: assert obj.sharedLib && x) false objects
+    stdenv.mkDerivation {
+      name = "lib${libraryName}";
+      builder = ./make-library.sh;
+      inherit objects libraryName sharedLib;
+    };
 
   
 }
